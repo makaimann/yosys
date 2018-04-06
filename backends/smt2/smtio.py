@@ -646,57 +646,68 @@ class SmtIo:
 
                 count = 0
                 num_bs = 0
-                while self.p_poll():
-                    count += 1
 
-                    if count < 25:
-                        continue
+                def _wait(count, num_bs):
+                    while self.p_poll():
+                        count += 1
 
-                    if count % 10 == 0 or count == 25:
-                        secs = count // 10
+                        if count < 25:
+                            continue
 
-                        if secs < 60:
-                            m = "(%d seconds)" % secs
-                        elif secs < 60*60:
-                            m = "(%d seconds -- %d:%02d)" % (secs, secs // 60, secs % 60)
+                        if count % 10 == 0 or count == 25:
+                            secs = count // 10
+
+                            if secs < 60:
+                                m = "(%d seconds)" % secs
+                            elif secs < 60*60:
+                                m = "(%d seconds -- %d:%02d)" % (secs, secs // 60, secs % 60)
+                            else:
+                                m = "(%d seconds -- %d:%02d:%02d)" % (secs, secs // (60*60), (secs // 60) % 60, secs % 60)
+
+                            print("%s %s %c" % ("\b \b" * num_bs, m, s[i]), end="", file=sys.stderr)
+                            num_bs = len(m) + 3
+
                         else:
-                            m = "(%d seconds -- %d:%02d:%02d)" % (secs, secs // (60*60), (secs // 60) % 60, secs % 60)
+                            print("\b" + s[i], end="", file=sys.stderr)
 
-                        print("%s %s %c" % ("\b \b" * num_bs, m, s[i]), end="", file=sys.stderr)
-                        num_bs = len(m) + 3
+                        sys.stderr.flush()
+                        i = (i + 1) % len(s)
 
-                    else:
-                        print("\b" + s[i], end="", file=sys.stderr)
+                    if num_bs != 0:
+                        print("\b \b" * num_bs, end="", file=sys.stderr)
+                        sys.stderr.flush()
 
-                    sys.stderr.flush()
-                    i = (i + 1) % len(s)
-
-                if num_bs != 0:
-                    print("\b \b" * num_bs, end="", file=sys.stderr)
-                    sys.stderr.flush()
+                _wait(count, num_bs)
 
             else:
                 count = 0
-                while self.p_poll(60):
-                    count += 1
-                    msg = None
+                num_bs = None
+                def _wait(count, num_bs):
+                    while self.p_poll(60):
+                        count += 1
+                        msg = None
 
-                    if count == 1:
-                        msg = "1 minute"
+                        if count == 1:
+                            msg = "1 minute"
 
-                    elif count in [5, 10, 15, 30]:
-                        msg = "%d minutes" % count
+                        elif count in [5, 10, 15, 30]:
+                            msg = "%d minutes" % count
 
-                    elif count == 60:
-                        msg = "1 hour"
+                        elif count == 60:
+                            msg = "1 hour"
 
-                    elif count % 60 == 0:
-                        msg = "%d hours" % (count // 60)
+                        elif count % 60 == 0:
+                            msg = "%d hours" % (count // 60)
 
-                    if msg is not None:
-                        print("%s waiting for solver (%s)" % (self.timestamp(), msg), flush=True)
+                        if msg is not None:
+                            print("%s waiting for solver (%s)" % (self.timestamp(), msg), flush=True)
+                _wait(count, num_bs)
 
         result = self.read()
+
+        while result == 'c' or result[:2] == 'c ':
+            _wait(count, num_bs)
+            result = self.read()
 
         if self.debug_file:
             print("(set-info :status %s)" % result, file=self.debug_file)
