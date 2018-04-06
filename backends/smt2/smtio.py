@@ -190,6 +190,13 @@ class SmtIo:
                 self.popen_vargs = ['boolector', '--smt2', '-i'] + self.solver_opts
             self.unroll = True
 
+        if self.solver == "boolector-cadical":
+            self.popen_vargs = ['boolector-cadical', '--smt2', '--sat-engine=cadical'] + self.solver_opts
+
+        if self.solver == "stp":
+            self.popen_vargs = ['stp'] + self.solver_opts
+            self.unroll = True
+
         if self.solver == "abc":
             if len(self.solver_opts) > 0:
                 self.popen_vargs = ['yosys-abc', '-S', '; '.join(self.solver_opts)]
@@ -263,7 +270,8 @@ class SmtIo:
             if key not in self.unroll_cache:
                 decl = deepcopy(self.unroll_decls[key[0]])
 
-                self.unroll_cache[key] = "|UNROLL#%d|" % self.unroll_idcnt
+                self.unroll_cache[key] = "|%s#%d|" % (key[0].replace("|", ""), self.unroll_idcnt)
+                # self.unroll_cache[key] = "|UNROLL#%d|" % self.unroll_idcnt
                 decl[1] = self.unroll_cache[key]
                 self.unroll_idcnt += 1
 
