@@ -647,7 +647,7 @@ class SmtIo:
                 count = 0
                 num_bs = 0
 
-                def _wait(count, num_bs):
+                def _wait(count, num_bs, i, s):
                     while self.p_poll():
                         count += 1
 
@@ -677,11 +677,13 @@ class SmtIo:
                         print("\b \b" * num_bs, end="", file=sys.stderr)
                         sys.stderr.flush()
 
-                _wait(count, num_bs)
+                _wait(count, num_bs, i, s)
 
             else:
                 count = 0
                 num_bs = None
+                i = None
+                s = None
                 def _wait(count, num_bs):
                     while self.p_poll(60):
                         count += 1
@@ -701,12 +703,12 @@ class SmtIo:
 
                         if msg is not None:
                             print("%s waiting for solver (%s)" % (self.timestamp(), msg), flush=True)
-                _wait(count, num_bs)
+                _wait(count, num_bs, i, s)
 
         result = self.read()
 
         while result == 'c' or result[:2] == 'c ':
-            _wait(count, num_bs)
+            _wait(count, num_bs, i, s)
             result = self.read()
 
         if self.debug_file:
