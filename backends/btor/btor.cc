@@ -133,12 +133,13 @@ struct BtorWorker
 		cell_recursion_guard.insert(cell);
 		btorf_push(log_id(cell));
 
-		if (cell->type.in("$add", "$sub", "$and", "$or", "$xor", "$xnor", "$shl", "$sshl", "$shr", "$sshr", "$shift", "$shiftx",
-				"$_AND_", "$_NAND_", "$_OR_", "$_NOR_", "$_XOR_", "$_XNOR_"))
+		if (cell->type.in("$add", "$sub", "$mul", "$and", "$or", "$xor", "$xnor", "$shl", "$sshl", "$shr", "$sshr", "$shift", "$shiftx",
+                      "$concat", "$_AND_", "$_NAND_", "$_OR_", "$_NOR_", "$_XOR_", "$_XNOR_"))
 		{
 			string btor_op;
 			if (cell->type == "$add") btor_op = "add";
 			if (cell->type == "$sub") btor_op = "sub";
+      if (cell->type == "$mul") btor_op = "mul";
 			if (cell->type.in("$shl", "$sshl")) btor_op = "sll";
 			if (cell->type == "$shr") btor_op = "srl";
 			if (cell->type == "$sshr") btor_op = "sra";
@@ -146,6 +147,7 @@ struct BtorWorker
 			if (cell->type.in("$and", "$_AND_")) btor_op = "and";
 			if (cell->type.in("$or", "$_OR_")) btor_op = "or";
 			if (cell->type.in("$xor", "$_XOR_")) btor_op = "xor";
+      if (cell->type == "$concat") btor_op = "concat";
 			if (cell->type == "$_NAND_") btor_op = "nand";
 			if (cell->type == "$_NOR_") btor_op = "nor";
 			if (cell->type.in("$xnor", "$_XNOR_")) btor_op = "xnor";
