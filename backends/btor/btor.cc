@@ -942,8 +942,18 @@ struct BtorWorker
 					bad_properties.push_back(nid_en_and_not_a);
 				} else {
 					int nid = next_nid++;
-					btorf("%d bad %d\n", nid, nid_en_and_not_a);
-				}
+                                        // Makai's edit: Trying to keep
+                                        // line-number of cell
+                                        string infostr =
+                                            cell->attributes.count("\\src")
+                                                ? cell->attributes.at("\\src")
+                                                      .decode_string()
+                                                      .c_str()
+                                                : log_id(cell);
+                                        btorf("%d bad %d ;; btor-assert %s\n",
+                                              nid, nid_en_and_not_a,
+                                              infostr.c_str());
+                                }
 
 				btorf_pop(log_id(cell));
 			}
